@@ -1,11 +1,11 @@
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtNetwork as qtn
-from PyQt5.QtCore import QUrl
-import json
 
+try:
+    from .utils import get_countries_data, get_list_of_countries
+except ImportError:
+    from utils import get_countries_data, get_list_of_countries
 
-def a():
-    pass
 
 class countryPickerWindow(qtw.QWidget):
     """
@@ -54,39 +54,21 @@ class countryPickerWindow(qtw.QWidget):
         #create widgets
         self.country_label = qtw.QLabel()
         self.country_combobox = qtw.QComboBox(self)
+        self.country_combobox.addItem('None Selected')
 
         #add widgets
         self.layout().addWidget(self.country_label)
         self.layout().addWidget(self.country_combobox)
 
-        #initialise and connect network manager
-        self.network_manager = qtn.QNetworkAccessManager()
-        self.network_manager.finished.connect(self.handle_response)
+        self.country_combobox.currentTextChanged.connect(self.update_label)
     
         #show app
         self.show()
 
-        #request from api
-        self.access_data()
+        url = "https://www.apicountries.com/countries"
+        self.fill_out_combobox(url)
 
-    def access_data(self):
-        """
-        sends a network request for the JSON data from apicountries
 
-        Parameters:
-        -----------
-        None
-
-        Returns:
-        ---------
-        None
-        """
-
-        url = QUrl("https://www.apicountries.com/countries")
-        request = qtn.QNetworkRequest(url)
-        self.network_manager.get(request)
-        
-    
     def update_label(self, text):
         """
         updates the label to read what has been selected in the combobox
@@ -103,44 +85,9 @@ class countryPickerWindow(qtw.QWidget):
         
         self.country_label.setText(f'Selected: {text}')
 
-    def handle_response(self, reply):
-        """
-        Processes and extracts the list of countries from the data 
-        and adds it to the combobox.
 
-        Parameters:
-        ------------
-        reply: obj
-            pyqt object containing the data recieved from the api.
-
-        Returns:
-        --------
-        None
-        """
+    def fill_out_combobox(self, url):
         
-        #handle errors
-        if reply.error():
-            print("Failed to fetch data.")
-            return
-
-        data = reply.readAll().data()
-        
-        #extract json data
-        try:
-            json_data = json.loads(data)
-        except Exception as e:
-            print(f"Error parsing data: {e}")
-        
-
-        #get list of countries
-        country_list = []
-
-        for country_dict in json_data:
-            country_list.append(country_dict["name"])
-        
-        #sort list:
-        country_list.sort()
-
-        #add countries, then connect combobox to label
+        countries_data = get_countries_data(url)
+        country_list = get_list_of_countries(countries_data)
         self.country_combobox.addItems(country_list)
-        self.country_combobox.currentTextChanged.connect(self.update_label)
