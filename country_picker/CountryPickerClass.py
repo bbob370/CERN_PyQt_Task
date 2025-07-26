@@ -1,6 +1,7 @@
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtNetwork as qtn
 
+#changes import method so main can be ran inside and outside of country_picker
 try:
     from .utils import get_countries_data, get_list_of_countries
 except ImportError:
@@ -19,18 +20,15 @@ class countryPickerWindow(qtw.QWidget):
         A widget object which is the text label
     country_combobox: obj
         A widget object which is the combobox in the window
-    network_manager: obj
-        A network object that handles requests to external apis. 
 
     Methods
     --------
-    access_data()
-        sends a network request for the JSON data from apicountries
     update_label(text)
         updates the label to read what has been selected in the combobox
-    handle_response(reply)
-        Processes and extracts the list of countries from the data 
-        and adds it to the combobox.
+    fill_out_combobox(url)
+        requests the list of countries from countries.api, and collects the
+        names of all the countries. This list is sorted then added to the
+        combobox. 
     """
 
     def __init__(self):
@@ -54,17 +52,21 @@ class countryPickerWindow(qtw.QWidget):
         #create widgets
         self.country_label = qtw.QLabel()
         self.country_combobox = qtw.QComboBox(self)
-        self.country_combobox.addItem('None Selected')
 
         #add widgets
         self.layout().addWidget(self.country_label)
         self.layout().addWidget(self.country_combobox)
 
+        #add initial value for combobox
+        self.country_combobox.addItem('None Selected')
+
+        #connect combobox to label
         self.country_combobox.currentTextChanged.connect(self.update_label)
     
         #show app
         self.show()
 
+        #request countries data from api
         url = "https://www.apicountries.com/countries"
         self.fill_out_combobox(url)
 
@@ -87,6 +89,20 @@ class countryPickerWindow(qtw.QWidget):
 
 
     def fill_out_combobox(self, url):
+        """
+        requests the list of countries from countries.api, and collects the
+        names of all the countries. This list is sorted then added to the
+        combobox. 
+
+        Parameters:
+        ------------
+        url: str
+            the String format of the url for the api used for the countries data
+        
+        Returns:
+        ---------
+        None
+        """
         
         countries_data = get_countries_data(url)
         country_list = get_list_of_countries(countries_data)
