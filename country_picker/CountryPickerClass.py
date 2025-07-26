@@ -1,11 +1,11 @@
 import PyQt5.QtWidgets as qtw
-import PyQt5.QtNetwork as qtn
-from PyQt5.QtCore import QUrl
-import json
 
+#changes import method so main can be ran inside and outside of country_picker
+try:
+    from .utils import get_countries_data, get_list_of_countries
+except ImportError:
+    from utils import get_countries_data, get_list_of_countries
 
-def a():
-    pass
 
 class countryPickerWindow(qtw.QWidget):
     """
@@ -19,21 +19,21 @@ class countryPickerWindow(qtw.QWidget):
         A widget object which is the text label
     country_combobox: obj
         A widget object which is the combobox in the window
-    network_manager: obj
-        A network object that handles requests to external apis. 
 
     Methods
     --------
-    access_data()
-        sends a network request for the JSON data from apicountries
     update_label(text)
         updates the label to read what has been selected in the combobox
-    handle_response(reply)
-        Processes and extracts the list of countries from the data 
-        and adds it to the combobox.
+    fill_out_combobox(url)
+        requests the list of countries from countries.api, and collects the
+        names of all the countries. This list is sorted then added to the
+        combobox. 
+    set_selected_country(selected_country)
+        Sets the selected country of the combobox to the one
+        specified by the user in the command line if there is one.
     """
 
-    def __init__(self):
+    def __init__(self, selected_country=None):
         """
         Initialises the fronted layout and connections between user
         interactions with the GUI and the backend methods. 
@@ -59,34 +59,24 @@ class countryPickerWindow(qtw.QWidget):
         self.layout().addWidget(self.country_label)
         self.layout().addWidget(self.country_combobox)
 
-        #initialise and connect network manager
-        self.network_manager = qtn.QNetworkAccessManager()
-        self.network_manager.finished.connect(self.handle_response)
+        #add initial value for combobox
+        self.country_combobox.addItem('None Selected')
+
+        #connect combobox to label
+        self.country_combobox.currentTextChanged.connect(self.update_label)
     
         #show app
         self.show()
 
-        #request from api
-        self.access_data()
+        #request countries data from api
+        url = "https://www.apicountries.com/countries"
+        self.fill_out_combobox(url)
 
-    def access_data(self):
-        """
-        sends a network request for the JSON data from apicountries
+        #set combobox to preselected country if there is one
+        if selected_country != None:
+            self.set_selected_country(selected_country)
 
-        Parameters:
-        -----------
-        None
 
-        Returns:
-        ---------
-        None
-        """
-
-        url = QUrl("https://www.apicountries.com/countries")
-        request = qtn.QNetworkRequest(url)
-        self.network_manager.get(request)
-        
-    
     def update_label(self, text):
         """
         updates the label to read what has been selected in the combobox
@@ -103,44 +93,39 @@ class countryPickerWindow(qtw.QWidget):
         
         self.country_label.setText(f'Selected: {text}')
 
-    def handle_response(self, reply):
+
+    def fill_out_combobox(self, url):
         """
-        Processes and extracts the list of countries from the data 
-        and adds it to the combobox.
+        requests the list of countries from countries.api, and collects the
+        names of all the countries. This list is sorted then added to the
+        combobox. 
 
         Parameters:
         ------------
-        reply: obj
-            pyqt object containing the data recieved from the api.
-
+        url: str
+            the String format of the url for the api used for the countries data
+        
         Returns:
-        --------
+        ---------
         None
         """
         
-        #handle errors
-        if reply.error():
-            print("Failed to fetch data.")
-            return
-
-        data = reply.readAll().data()
-        
-        #extract json data
-        try:
-            json_data = json.loads(data)
-        except Exception as e:
-            print(f"Error parsing data: {e}")
-        
-
-        #get list of countries
-        country_list = []
-
-        for country_dict in json_data:
-            country_list.append(country_dict["name"])
-        
-        #sort list:
-        country_list.sort()
-
-        #add countries, then connect combobox to label
+        countries_data = get_countries_data(url)
+        country_list = get_list_of_countries(countries_data)
         self.country_combobox.addItems(country_list)
-        self.country_combobox.currentTextChanged.connect(self.update_label)
+    
+    def set_selected_country(self, selected_country):
+        """
+        Sets the selected country of the combobox to the one
+        specified by the user in the command line if there is one.
+
+        Parameters:
+        ------------
+        selected_country: str
+            Country selected by the user if any
+
+        Returns:
+            None
+        """
+
+        self.country_combobox.setCurrentText(selected_country)
