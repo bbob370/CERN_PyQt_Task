@@ -31,7 +31,7 @@ class countryPickerWindow(qtw.QWidget):
         combobox. 
     """
 
-    def __init__(self):
+    def __init__(self, selected_country=None):
         """
         Initialises the fronted layout and connections between user
         interactions with the GUI and the backend methods. 
