@@ -70,6 +70,9 @@ class countryPickerWindow(qtw.QWidget):
         url = "https://www.apicountries.com/countries"
         self.fill_out_combobox(url)
 
+        if selected_country != None:
+            self.set_selected_country(selected_country)
+
 
     def update_label(self, text):
         """
@@ -107,3 +110,6 @@ class countryPickerWindow(qtw.QWidget):
         countries_data = get_countries_data(url)
         country_list = get_list_of_countries(countries_data)
         self.country_combobox.addItems(country_list)
+    
+    def set_selected_country(self, selected_country):
+        self.country_combobox.setCurrentText(selected_country)
