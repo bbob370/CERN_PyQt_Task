@@ -1,5 +1,4 @@
 import PyQt5.QtWidgets as qtw
-import PyQt5.QtNetwork as qtn
 
 #changes import method so main can be ran inside and outside of country_picker
 try:
@@ -29,6 +28,9 @@ class countryPickerWindow(qtw.QWidget):
         requests the list of countries from countries.api, and collects the
         names of all the countries. This list is sorted then added to the
         combobox. 
+    set_selected_country(selected_country)
+        Sets the selected country of the combobox to the one
+        specified by the user in the command line if there is one.
     """
 
     def __init__(self, selected_country=None):
@@ -70,6 +72,7 @@ class countryPickerWindow(qtw.QWidget):
         url = "https://www.apicountries.com/countries"
         self.fill_out_combobox(url)
 
+        #set combobox to preselected country if there is one
         if selected_country != None:
             self.set_selected_country(selected_country)
 
@@ -112,4 +115,17 @@ class countryPickerWindow(qtw.QWidget):
         self.country_combobox.addItems(country_list)
     
     def set_selected_country(self, selected_country):
+        """
+        Sets the selected country of the combobox to the one
+        specified by the user in the command line if there is one.
+
+        Parameters:
+        ------------
+        selected_country: str
+            Country selected by the user if any
+
+        Returns:
+            None
+        """
+
         self.country_combobox.setCurrentText(selected_country)
