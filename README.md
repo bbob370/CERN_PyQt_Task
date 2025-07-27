@@ -18,7 +18,9 @@ How to use:
 
 Testing:
 
-    The testing file contains a test case for the JSON parsing logic using unittest. 
+    The testing file contains a test case for the JSON parsing logic using unittest. To run the test, input this command into the command line:
+
+    python -m unittest tests.UtilsTest 
 
     To be honest I am unsure about the purpose of this test? The parsing logic used is all contained in 1 line of code:
 
